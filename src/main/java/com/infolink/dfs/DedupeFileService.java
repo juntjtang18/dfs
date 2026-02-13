@@ -69,7 +69,7 @@ public class DedupeFileService {
     
     public String dedupeSaveFile(MultipartFile file, String user, String targetDir) throws IOException, NoSuchAlgorithmException {
         logger.debug("dedupeSaveFile(...) called with targetDir: {}", targetDir);
-        logger.debug("BLOCK_SIZE={}", BLOCK_SIZE);
+        //logger.debug("BLOCK_SIZE={}", BLOCK_SIZE);
         
         String filename = file.getOriginalFilename();
         logger.debug("Original filename: {}", filename);
@@ -80,10 +80,10 @@ public class DedupeFileService {
             filename = filename.trim(); // Trim leading/trailing spaces
         }
         long fileSize = file.getSize();
-        logger.debug("File size: {} bytes", fileSize);
+        //logger.debug("File size: {} bytes", fileSize);
         
         String parentHash = HashUtil.calculateHash(targetDir.getBytes());
-        logger.debug("Calculated parent hash for targetDir '{}': {}", targetDir, parentHash);
+        //logger.debug("Calculated parent hash for targetDir '{}': {}", targetDir, parentHash);
         
         List<String> blockHashes = new ArrayList<>();
         try (InputStream inputStream = file.getInputStream()) {
@@ -98,13 +98,14 @@ public class DedupeFileService {
                 
                 // Request the metadata node to get nodes for storing the block
                 ResponseNodesForBlock response = getNodesForBlock(blockHash);
+                /*
                 logger.debug("getNodesForBlock(...) returns: {}", response.getStatus());
                 int i = 0;
                 for(DfsNode node : response.getNodes()) {
                 	logger.debug("{}      {}", i, node.getContainerUrl());
                 	i++;
                 }
-                
+                */
                 List<DfsNode> nodes = response.getNodes();
                 if (nodes.isEmpty()) {
                     logger.info("Get nodes for block retrieved 0 nodes. Response is {}", response);
@@ -126,7 +127,7 @@ public class DedupeFileService {
         }
         // Calculate the hash of the entire file using block hashes
         String fileHash = calculateFileHash(blockHashes);
-        logger.info("Calculated file hash: {}", fileHash);
+        //logger.debug("Calculated file hash: {}", fileHash);
         
         // Create a DfsFile instance with the block hashes and target directory
         DfsFile dfsFile = new DfsFile();
@@ -152,7 +153,7 @@ public class DedupeFileService {
 
         try {
             String postUrl = metaNodeUrl + "/metadata/file/save"; // Assuming this is the correct endpoint
-            logger.info("postUrl={}", postUrl);
+            //logger.debug("postUrl={}", postUrl);
             
             // Create a request object, assuming the targetDir needs to be part of the request body.
             Map<String, Object> requestBody = new HashMap<>();
@@ -168,7 +169,7 @@ public class DedupeFileService {
                 String.class
             );
             
-            logger.info("DfsFile metadata saved successfully to MetaNode. Response: {}", response.getBody());
+            logger.debug("DfsFile metadata saved successfully to MetaNode. Response: {}", response.getBody());
             return response.getBody(); // Return the ID or any message from FileController
         } catch (HttpClientErrorException e) {
             logger.error("Error saving DfsFile metadata to MetaNode: {}", e.getMessage());
